@@ -4,7 +4,7 @@ Convert [Day One](https://dayoneapp.com) journal entries to [Markdown](https://d
 
 ## Introduction
 
-Over the years, I've written many posts in [Day One](https://dayoneapp.com); it's a great journaling tool and is lightweight enough to encourage me to write. Unfortunately, it's not easy to pull _all_ the data out in a portable way.
+[Day One](https://dayoneapp.com) doesn't make it easy to pull _all_ journal data out in a portable way.
 
 `day-one-to-markdown` converts Day One's zipped JSON exports containing one or more journal entries, to a folder of Markdown files (with Front Matter) and attachments, suitable for use with blogging tools like [Jekyll](https://jekyllrb.com). All of the journal metadata ends up in Front Matter, so it's immediately available to any page template.
 
