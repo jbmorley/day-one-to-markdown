@@ -5,5 +5,5 @@ set -e
 directory=`dirname ${BASH_SOURCE[0]-$0}`
 directory=`cd $directory && pwd`
 name=`basename $0`
-export PIPENV_PIPFILE=$( realpath "$directory/../Pipfile" )
+export PIPENV_PIPFILE=$( realpath "$directory/Pipfile" )
 pipenv run python3 -u "$directory/$name.py" $@
