@@ -1,6 +1,6 @@
 # day-one-to-markdown
 
-Convert [Day One](https://dayoneapp.com) journal entries to [Markdown](https://daringfireball.net/projects/markdown/syntax) and [Front Matter](https://jekyllrb.com/docs/front-matter/).
+Convert [Day One](https://dayoneapp.com) journal entries to [Markdown](https://daringfireball.net/projects/markdown) and [Front Matter](https://jekyllrb.com/docs/front-matter/).
 
 ## Introduction
 
