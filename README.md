@@ -22,7 +22,9 @@ Exporting from Day One is simply a matter of selecting the entries you wish to e
 
 ![Exporting a journal entry on macOS](export.png)
 
-Once you have a zip file containing the export, perform the conversion by specifying the file, and target directory in which you wish the individual entires to be created. For example, the following command creates posts for the journal entries in 'Export - All Entries (20020-11-07).zip' in the drafts folder of my website:
+Once you have a zip file containing the export, perform the conversion by specifying the file and target directory in which you wish the individual entires to be created.
+
+For example, the following command creates posts for the journal entries in 'Export - All Entries (20020-11-07).zip' in the drafts folder of my website:
 
 ```bash
 day-one-to-markdown "Export - All Entries (20020-11-07).zip" ~/Site/content/drafts
