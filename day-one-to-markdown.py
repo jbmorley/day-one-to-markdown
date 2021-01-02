@@ -78,9 +78,11 @@ def main():
 
             os.makedirs(post_directory)
 
-            photos = {data["identifier"]: Photo(os.path.join(zip.directory.name, "photos"), data) for data in post["photos"]}
-            for identifier, photo in photos.items():
-                shutil.copy(photo.path, os.path.join(post_directory, photo.basename))
+            photos = []
+            if "photos" in post:
+                photos = {data["identifier"]: Photo(os.path.join(zip.directory.name, "photos"), data) for data in post["photos"]}
+                for identifier, photo in photos.items():
+                    shutil.copy(photo.path, os.path.join(post_directory, photo.basename))
 
             content = post["text"]
 
@@ -91,7 +93,8 @@ def main():
 
             metadata = dict(post)
             del metadata["text"]
-            del metadata["photos"]
+            if "photos" in metadata:
+                del metadata["photos"]
             metadata["date"] = metadata["creationDate"]
             del metadata["creationDate"]
             try:
