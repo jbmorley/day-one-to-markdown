@@ -13,13 +13,12 @@ import frontmatter
 
 
 class Zip(object):
-
     def __init__(self, path):
         self.path = os.path.abspath(path)
 
     def __enter__(self):
         self.directory = tempfile.TemporaryDirectory()
-        zip = zipfile.ZipFile(self.path, 'r')
+        zip = zipfile.ZipFile(self.path, "r")
         zip.extractall(self.directory.name)
         return self
 
@@ -29,7 +28,6 @@ class Zip(object):
 
 
 class Photo(object):
-
     def __init__(self, directory, data):
         self.directory = directory
         self.data = data
@@ -42,49 +40,87 @@ class Photo(object):
     def path(self):
         return os.path.join(self.directory, self.basename)
 
-
     @property
     def ext(self):
         try:
-            return ".%s" % (self.data["type"], )
+            return ".%s" % (self.data["type"],)
         except KeyError:
             return ".jpeg"
 
 
 class Markdown(object):
-
     def __init__(self, content=None, metadata=None):
         self.content = content
         self.metadata = metadata
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert a Day One JSON export to Markdown.")
+    parser = argparse.ArgumentParser(
+        description="Convert a Day One JSON export to Markdown."
+    )
     parser.add_argument("path")
     parser.add_argument("destination")
+    parser.add_argument(
+        "--journal",
+        dest="journal",
+        help="day one journal collection to export",
+        required=False,
+        action="store",
+    )
     options = parser.parse_args()
 
-    destination = os.path.abspath(options.destination)
+    if options.journal != "":
+        journal_js = options.journal + ".json"
+        destination = os.path.abspath(options.destination + "/" + options.journal)
+    else:
+        # use the default journal name
+        journal_js = "Journal.json"
+        destination = os.path.abspath(options.destination)
 
     with Zip(options.path) as zip:
-        with open(os.path.join(zip.directory.name, "Journal.json"), "r") as fh:
+        with open(os.path.join(zip.directory.name, journal_js), "r") as fh:
             data = json.load(fh)
             directory = os.path.join(os.path.dirname(options.path))
 
         for post in data["entries"]:
-
             date = dateutil.parser.parse(post["creationDate"])
-            post_directory = os.path.join(destination, "%s-%s" % (date.strftime("%Y-%m-%d"), post["uuid"].lower()))
+            post_directory = os.path.join(
+                destination, "%s-%s" % (date.strftime("%Y-%m-%d"), post["uuid"].lower())
+            )
 
             os.makedirs(post_directory)
 
             photos = []
             if "photos" in post:
-                photos = {data["identifier"]: Photo(os.path.join(zip.directory.name, "photos"), data) for data in post["photos"]}
-                for identifier, photo in photos.items():
-                    shutil.copy(photo.path, os.path.join(post_directory, photo.basename))
+                photos = {
+                    data["identifier"]: Photo(
+                        os.path.join(zip.directory.name, "photos"), data
+                    )
+                    for data in post["photos"]
+                }
 
-            content = post["text"]
+                for _, photo in photos.items():
+                    if "md5" not in photo.data:
+                        print(f'[ERROR] photo without md5, etc. ({post["uuid"]})')
+                        photo.data["md5"] = "stubbed_basename"
+                        continue
+
+                    try:
+                        shutil.copy(
+                            photo.path, os.path.join(post_directory, photo.basename)
+                        )
+                    except FileNotFoundError:
+                        print(
+                            f"""[ERROR]photo copy failed: ({post["uuid"]})
+  src: {photo.path}
+  dst: {os.path.join(post_directory, photo.basename)}"""
+                        )
+
+            try:
+                content = post["text"]
+            except KeyError:
+                print(f'[ERROR] post without text ({post["uuid"]})')
+                content = ""
 
             def replacement(match):
                 return photos[match.group(1)].basename
@@ -92,9 +128,12 @@ def main():
             content = re.sub("dayone-moment://([0-9a-zA-Z]+)", replacement, content)
 
             metadata = dict(post)
-            del metadata["text"]
-            if "photos" in metadata:
-                del metadata["photos"]
+
+            # remove extraneous fields from metadata
+            for d in ["text", "richText", "photos"]:
+                if d in metadata:
+                    del metadata[d]
+
             metadata["date"] = metadata["creationDate"]
             del metadata["creationDate"]
             try:
@@ -103,7 +142,7 @@ def main():
                 pass
             markdown = Markdown(content=content, metadata=metadata)
 
-            with open(os.path.join(post_directory, "index.markdown"), "w") as fh:
+            with open(os.path.join(post_directory, "index.md"), "w") as fh:
                 fh.write(frontmatter.dumps(markdown))
                 fh.write("\n")
 
