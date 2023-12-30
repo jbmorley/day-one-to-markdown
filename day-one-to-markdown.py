@@ -98,12 +98,29 @@ def main():
                     )
                     for data in post["photos"]
                 }
-                for identifier, photo in photos.items():
-                    shutil.copy(
-                        photo.path, os.path.join(post_directory, photo.basename)
-                    )
 
-            content = post["text"]
+                for _, photo in photos.items():
+                    if "md5" not in photo.data:
+                        print(f'[ERROR] photo without md5, etc. ({post["uuid"]})')
+                        photo.data["md5"] = "stubbed_basename"
+                        continue
+
+                    try:
+                        shutil.copy(
+                            photo.path, os.path.join(post_directory, photo.basename)
+                        )
+                    except FileNotFoundError:
+                        print(
+                            f"""[ERROR]photo copy failed: ({post["uuid"]})
+  src: {photo.path}
+  dst: {os.path.join(post_directory, photo.basename)}"""
+                        )
+
+            try:
+                content = post["text"]
+            except KeyError:
+                print(f'[ERROR] post without text ({post["uuid"]})')
+                content = ""
 
             def replacement(match):
                 return photos[match.group(1)].basename
@@ -111,9 +128,12 @@ def main():
             content = re.sub("dayone-moment://([0-9a-zA-Z]+)", replacement, content)
 
             metadata = dict(post)
-            del metadata["text"]
-            if "photos" in metadata:
-                del metadata["photos"]
+
+            # remove extraneous fields from metadata
+            for d in ["text", "richText", "photos"]:
+                if d in metadata:
+                    del metadata[d]
+
             metadata["date"] = metadata["creationDate"]
             del metadata["creationDate"]
             try:
@@ -122,7 +142,7 @@ def main():
                 pass
             markdown = Markdown(content=content, metadata=metadata)
 
-            with open(os.path.join(post_directory, "index.markdown"), "w") as fh:
+            with open(os.path.join(post_directory, "index.md"), "w") as fh:
                 fh.write(frontmatter.dumps(markdown))
                 fh.write("\n")
 
