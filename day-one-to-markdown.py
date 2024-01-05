@@ -18,7 +18,7 @@ class Zip(object):
 
     def __enter__(self):
         self.directory = tempfile.TemporaryDirectory()
-        zip = zipfile.ZipFile(self.path, "r")
+        zip = zipfile.ZipFile(self.path, 'r')
         zip.extractall(self.directory.name)
         return self
 
@@ -43,7 +43,7 @@ class Photo(object):
     @property
     def ext(self):
         try:
-            return ".%s" % (self.data["type"],)
+            return ".%s" % (self.data["type"], )
         except KeyError:
             return ".jpeg"
 
@@ -55,9 +55,7 @@ class Markdown(object):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Convert a Day One JSON export to Markdown."
-    )
+    parser = argparse.ArgumentParser(description="Convert a Day One JSON export to Markdown.")
     parser.add_argument("path")
     parser.add_argument("destination")
     parser.add_argument(
@@ -84,24 +82,15 @@ def main():
 
         for post in data["entries"]:
             date = dateutil.parser.parse(post["creationDate"])
-            post_directory = os.path.join(
-                destination, "%s-%s" % (date.strftime("%Y-%m-%d"), post["uuid"].lower())
-            )
+            post_directory = os.path.join(destination, "%s-%s" % (date.strftime("%Y-%m-%d"), post["uuid"].lower()))
 
             os.makedirs(post_directory)
 
             photos = []
             if "photos" in post:
-                photos = {
-                    data["identifier"]: Photo(
-                        os.path.join(zip.directory.name, "photos"), data
-                    )
-                    for data in post["photos"]
-                }
+                photos = {data["identifier"]: Photo(os.path.join(zip.directory.name, "photos"), data) for data in post["photos"]}
                 for identifier, photo in photos.items():
-                    shutil.copy(
-                        photo.path, os.path.join(post_directory, photo.basename)
-                    )
+                    shutil.copy(photo.path, os.path.join(post_directory, photo.basename))
 
             content = post["text"]
 
