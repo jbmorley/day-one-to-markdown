@@ -13,7 +13,6 @@ import frontmatter
 
 
 class Zip(object):
-
     def __init__(self, path):
         self.path = os.path.abspath(path)
 
@@ -29,7 +28,6 @@ class Zip(object):
 
 
 class Photo(object):
-
     def __init__(self, directory, data):
         self.directory = directory
         self.data = data
@@ -42,7 +40,6 @@ class Photo(object):
     def path(self):
         return os.path.join(self.directory, self.basename)
 
-
     @property
     def ext(self):
         try:
@@ -52,7 +49,6 @@ class Photo(object):
 
 
 class Markdown(object):
-
     def __init__(self, content=None, metadata=None):
         self.content = content
         self.metadata = metadata
@@ -62,17 +58,29 @@ def main():
     parser = argparse.ArgumentParser(description="Convert a Day One JSON export to Markdown.")
     parser.add_argument("path")
     parser.add_argument("destination")
+    parser.add_argument(
+        "--journal",
+        dest="journal",
+        help="day one journal collection to export",
+        required=False,
+        action="store",
+    )
     options = parser.parse_args()
 
-    destination = os.path.abspath(options.destination)
+    if options.journal != "":
+        journal_js = options.journal + ".json"
+        destination = os.path.abspath(options.destination + "/" + options.journal)
+    else:
+        # use the default journal name
+        journal_js = "Journal.json"
+        destination = os.path.abspath(options.destination)
 
     with Zip(options.path) as zip:
-        with open(os.path.join(zip.directory.name, "Journal.json"), "r") as fh:
+        with open(os.path.join(zip.directory.name, journal_js), "r") as fh:
             data = json.load(fh)
             directory = os.path.join(os.path.dirname(options.path))
 
         for post in data["entries"]:
-
             date = dateutil.parser.parse(post["creationDate"])
             post_directory = os.path.join(destination, "%s-%s" % (date.strftime("%Y-%m-%d"), post["uuid"].lower()))
 
