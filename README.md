@@ -1,3 +1,7 @@
+> [!IMPORTANT]
+>
+> This project has been archived and will not be maintained or developed further.
+
 # day-one-to-markdown
 
 Convert [Day One](https://dayoneapp.com) journal entries to [Markdown](https://daringfireball.net/projects/markdown) and [Front Matter](https://jekyllrb.com/docs/front-matter/).
